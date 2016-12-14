@@ -13,7 +13,7 @@
 #define JR_PUSH_GO(x)       go_stack[go_stack_idx++] = go; go = x
 #define JR_POP_GO()         go = go_stack[--go_stack_idx]
 
-void jr_read(jr_callback cb, const char* cstr) {
+void jr_read(jr_callback cb, const char* cstr, void* user_data) {
     static void* go_val[] = {
         ['\0']        = &&l_done,
         [1 ... 8]     = &&l_err,
@@ -181,7 +181,7 @@ l_next:
 l_err:
     data.cstr = c;
     data.len = 1;
-    cb(jr_type_error, &data);
+    cb(jr_type_error, &data, user_data);
     return;
 
 l_num_s:
@@ -191,7 +191,7 @@ l_num_s:
 
 l_num_e:
     data.len = (int32_t)(c - data.cstr);
-    cb(jr_type_number, &data);
+    cb(jr_type_number, &data, user_data);
     JR_POP_GO();
     JR_DISPATCH_THIS();
 
@@ -202,7 +202,7 @@ l_str_s:
 
 l_str_e:
     data.len = (int32_t)(c - data.cstr);
-    cb(jr_type_string, &data);
+    cb(jr_type_string, &data, user_data);
     JR_POP_GO();
     JR_DISPATCH_NEXT();
 
@@ -235,7 +235,7 @@ l_null_l:
     goto *go_null_l[*(c = cstr++)];
 
 l_null_ll:
-    cb(jr_type_null, NULL);
+    cb(jr_type_null, NULL, user_data);
     JR_DISPATCH_NEXT();
 
 l_true_t:
@@ -248,7 +248,7 @@ l_true_u:
     goto *go_true_u[*(c = cstr++)];
 
 l_true_e:
-    cb(jr_type_true, NULL);
+    cb(jr_type_true, NULL, user_data);
     JR_DISPATCH_NEXT();
 
 l_false_f:
@@ -264,26 +264,26 @@ l_false_s:
     goto *go_false_s[*(c = cstr++)];
     
 l_false_e:
-    cb(jr_type_false, NULL);
+    cb(jr_type_false, NULL, user_data);
     JR_DISPATCH_NEXT();
 
 l_arr_s:
-    cb(jr_type_array_start, NULL);
+    cb(jr_type_array_start, NULL, user_data);
     JR_PUSH_GO(go_arr);
     JR_DISPATCH_NEXT();
 
 l_arr_e:
-    cb(jr_type_array_end, NULL);
+    cb(jr_type_array_end, NULL, user_data);
     JR_POP_GO();
     JR_DISPATCH_NEXT();
 
 l_obj_s:
-    cb(jr_type_object_start, NULL);
+    cb(jr_type_object_start, NULL, user_data);
     JR_PUSH_GO(go_obj);
     JR_DISPATCH_NEXT();
 
 l_obj_e:
-    cb(jr_type_object_end, NULL);
+    cb(jr_type_object_end, NULL, user_data);
     JR_POP_GO();
     JR_DISPATCH_NEXT();
 

@@ -3,7 +3,7 @@
 #include <time.h>
 #include "../src/jread.h"
 
-void handler(jr_type type, const jr_str* data) {
+void handler(jr_type type, const jr_str* data, void* user_data) {
     switch (type) {
         case jr_type_array_start:
             printf("[\n");
@@ -33,7 +33,7 @@ void handler(jr_type type, const jr_str* data) {
             printf(" STR: %.*s\n", data->len, data->cstr);
             return;
         case jr_type_error:
-            printf(" ERR: %.*s\n", data->len, data->cstr);
+            printf(" ERROR: char '%.*s'\n", data->len, data->cstr);
             exit(1);
             return;
     }
@@ -53,7 +53,7 @@ int main() {
     buffer[size] = '\0';
     fclose(fp);
     clock_t start = clock();
-    jr_read(&handler, buffer);
+    jr_read(&handler, buffer, 0);
     printf("%.4f\n", (double)(clock() - start) / CLOCKS_PER_SEC);
     free(buffer);
 }

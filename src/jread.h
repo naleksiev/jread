@@ -30,9 +30,9 @@ typedef struct jr_str {
     int32_t     len;
 } jr_str;
 
-typedef void (*jr_callback)(jr_type type, const jr_str* data);
+typedef void (*jr_callback)(jr_type type, const jr_str* data, void* user_data);
 
-void jr_read(jr_callback cb, const char* doc);
+void jr_read(jr_callback cb, const char* doc, void* user_data);
 
 #ifdef __cplusplus
 }
