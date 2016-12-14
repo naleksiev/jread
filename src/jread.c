@@ -12,7 +12,6 @@
 #define JR_DISPATCH_THIS()  goto *go[*c];
 #define JR_PUSH_GO(x)       go_stack[go_stack_idx++] = go; go = x
 #define JR_POP_GO()         go = go_stack[--go_stack_idx]
-#define JR_SET_GO(x)        go = x
 
 void jr_read(jr_callback cb, const char* cstr) {
     static void* go_val[] = {
@@ -57,7 +56,7 @@ void jr_read(jr_callback cb, const char* cstr) {
     };
 
     static void* go_utf8_valid[] = {
-        ['\0']        = &&l_utf8_valid,
+        ['\0']        = &&l_next,
         [1  ... 255]  = &&l_err,
     };
 
@@ -209,30 +208,22 @@ l_str_e:
 
 l_utf8:
     utf8_mask >>= 8;
-    goto *go[*(c = cstr++) & utf8_mask];
+    goto *go_utf8[*(c = cstr++) & utf8_mask];
 
 l_utf8_2:
-    JR_PUSH_GO(go_utf8);
     utf8_mask = 0x000000FF;
-    JR_DISPATCH_NEXT();
+    goto *go_utf8[*(c = cstr++)];
 
 l_utf8_3:
-    JR_PUSH_GO(go_utf8);
     utf8_mask = 0x0000FFFF;
-    JR_DISPATCH_NEXT();
+    goto *go_utf8[*(c = cstr++)];
 
 l_utf8_4:
-    JR_PUSH_GO(go_utf8);
     utf8_mask = 0x00FFFFFF;
-    JR_DISPATCH_NEXT();
+    goto *go_utf8[*(c = cstr++)];
 
 l_utf8_valid:
-    JR_SET_GO(go_utf8_valid);
-    goto *go[utf8_mask];
-
-l_utf8_e:
-    JR_POP_GO();
-    JR_DISPATCH_NEXT();
+    goto *go_utf8_valid[utf8_mask];
 
 l_null_n:
     goto *go_null_n[*(c = cstr++)];
