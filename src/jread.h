@@ -23,6 +23,7 @@ typedef enum jr_type {
     jr_type_array_end,
     jr_type_object_start,
     jr_type_object_end,
+    jr_type_key,
 } jr_type;
 
 typedef struct jr_str {

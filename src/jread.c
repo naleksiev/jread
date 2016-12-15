@@ -10,11 +10,12 @@
 
 #define JR_DISPATCH_NEXT()  goto *go[*(c = cstr++)]
 #define JR_DISPATCH_THIS()  goto *go[*c];
+#define JR_PUSH(x)          go_stack[go_stack_idx++] = go
 #define JR_PUSH_GO(x)       go_stack[go_stack_idx++] = go; go = x
 #define JR_POP_GO()         go = go_stack[--go_stack_idx]
 
 void jr_read(jr_callback cb, const char* cstr, void* user_data) {
-    static void* go_val[] = {
+    static void* go_doc[] = {
         ['\0']        = &&l_done,
         [1 ... 8]     = &&l_err,
         ['\t']        = &&l_next,
@@ -23,9 +24,48 @@ void jr_read(jr_callback cb, const char* cstr, void* user_data) {
         ['\r']        = &&l_next,
         [14 ... 31]   = &&l_err,
         [' ']         = &&l_next,
-        [33 ... 90]   = &&l_err,
+        [33 ... 33]   = &&l_err,
+        ['"']         = &&l_str_s,
+        [35 ... 44]   = &&l_err,
+        ['-']         = &&l_num_s,
+        [46 ... 47]   = &&l_err,
+        ['0' ... '9'] = &&l_num_s,
+        [58 ... 90]   = &&l_err,
         ['[']         = &&l_arr_s,
-        [92 ... 122]  = &&l_err,
+        [92 ... 101]  = &&l_err,
+        ['f']         = &&l_false_f,
+        [103 ... 109] = &&l_err,
+        ['n']         = &&l_null_n,
+        [111 ... 115] = &&l_err,
+        ['t']         = &&l_true_t,
+        [117 ... 122] = &&l_err,
+        ['{']         = &&l_obj_s,
+        [124 ... 255] = &&l_err,
+    };
+
+    static void* go_val[] = {
+        [0 ... 8]     = &&l_err,
+        ['\t']        = &&l_next,
+        ['\n']        = &&l_next,
+        [11 ... 12]   = &&l_err,
+        ['\r']        = &&l_next,
+        [14 ... 31]   = &&l_err,
+        [' ']         = &&l_next,
+        [33 ... 33]   = &&l_err,
+        ['"']         = &&l_str_s,
+        [35 ... 44]   = &&l_err,
+        ['-']         = &&l_num_s,
+        [46 ... 47]   = &&l_err,
+        ['0' ... '9'] = &&l_num_s,
+        [58 ... 90]   = &&l_err,
+        ['[']         = &&l_arr_s,
+        [92 ... 101]  = &&l_err,
+        ['f']         = &&l_false_f,
+        [103 ... 109] = &&l_err,
+        ['n']         = &&l_null_n,
+        [111 ... 115] = &&l_err,
+        ['t']         = &&l_true_t,
+        [117 ... 122] = &&l_err,
         ['{']         = &&l_obj_s,
         [124 ... 255] = &&l_err,
     };
@@ -40,6 +80,18 @@ void jr_read(jr_callback cb, const char* cstr, void* user_data) {
         [0 ... 31]    = &&l_err,
         [32 ... 33]   = &&l_next,
         ['"']         = &&l_str_e,
+        [35 ... 126]  = &&l_next,
+        [127 ... 191] = &&l_err,
+        [192 ... 223] = &&l_utf8_2,
+        [224 ... 239] = &&l_utf8_3,
+        [240 ... 247] = &&l_utf8_4,
+        [248 ... 255] = &&l_err,
+    };
+
+    static void* go_key[] = {
+        [0 ... 31]    = &&l_err,
+        [32 ... 33]   = &&l_next,
+        ['"']         = &&l_key,
         [35 ... 126]  = &&l_next,
         [127 ... 191] = &&l_err,
         [192 ... 223] = &&l_utf8_2,
@@ -130,7 +182,8 @@ void jr_read(jr_callback cb, const char* cstr, void* user_data) {
         [' ']         = &&l_next,
         [33 ... 33]   = &&l_err,
         ['"']         = &&l_str_s,
-        [35 ... 44]   = &&l_err,
+        [35 ... 43]   = &&l_err,
+        [',']         = &&l_arr_next,
         ['-']         = &&l_num_s,
         [46 ... 47]   = &&l_err,
         ['0' ... '9'] = &&l_num_s,
@@ -157,20 +210,42 @@ void jr_read(jr_callback cb, const char* cstr, void* user_data) {
         ['\r']        = &&l_next,
         [14 ... 31]   = &&l_err,
         [' ']         = &&l_next,
-        [33 ... 90]   = &&l_err,
-        ['[']         = &&l_arr_s,
-        [92 ... 122]  = &&l_err,
-        ['{']         = &&l_obj_s,
-        [124 ... 124] = &&l_err,
+        [33 ... 33]   = &&l_err,
+        ['"']         = &&l_kvp,
+        [35 ... 124]  = &&l_err,
         ['}']         = &&l_obj_e,
         [126 ... 255] = &&l_err,
+    };
+
+    static void* go_col[] = {
+        [0 ... 8]     = &&l_err,
+        ['\t']        = &&l_next,
+        ['\n']        = &&l_next,
+        [11 ... 12]   = &&l_err,
+        ['\r']        = &&l_next,
+        [14 ... 31]   = &&l_err,
+        [' ']         = &&l_next,
+        [33 ... 57]   = &&l_err,
+        [':']         = &&l_col,
+        [59 ... 255]  = &&l_err,
+    };
+
+    static void* go_obj_val[] = {
+        [0 ... 8]     = &&l_err,
+        ['\t']        = &&l_next,
+        ['\n']        = &&l_next,
+        [11 ... 12]   = &&l_err,
+        ['\r']        = &&l_next,
+        [14 ... 31]   = &&l_err,
+        [' ']         = &&l_next,
+        [33 ... 255]  = &&l_val,
     };
 
     jr_str data = { .cstr = 0, .len = 0 };
 
     const char* c = NULL;
 
-    void**  go = go_val;
+    void**  go = go_doc;
     void**  go_stack[255];
     int32_t go_stack_idx = 0;
     int32_t utf8_mask = 0;
@@ -226,6 +301,7 @@ l_utf8_valid:
     goto *go_utf8_valid[utf8_mask];
 
 l_null_n:
+    JR_PUSH();
     goto *go_null_n[*(c = cstr++)];
     
 l_null_u:
@@ -236,9 +312,11 @@ l_null_l:
 
 l_null_ll:
     cb(jr_type_null, NULL, user_data);
+    JR_POP_GO();
     JR_DISPATCH_NEXT();
 
 l_true_t:
+    JR_PUSH();
     goto *go_true_t[*(c = cstr++)];
     
 l_true_r:
@@ -249,9 +327,11 @@ l_true_u:
 
 l_true_e:
     cb(jr_type_true, NULL, user_data);
+    JR_POP_GO();
     JR_DISPATCH_NEXT();
 
 l_false_f:
+    JR_PUSH();
     goto *go_false_f[*(c = cstr++)];
 
 l_false_a:
@@ -265,6 +345,7 @@ l_false_s:
     
 l_false_e:
     cb(jr_type_false, NULL, user_data);
+    JR_POP_GO();
     JR_DISPATCH_NEXT();
 
 l_arr_s:
@@ -277,6 +358,9 @@ l_arr_e:
     JR_POP_GO();
     JR_DISPATCH_NEXT();
 
+l_arr_next:
+    JR_DISPATCH_NEXT();
+
 l_obj_s:
     cb(jr_type_object_start, NULL, user_data);
     JR_PUSH_GO(go_obj);
@@ -284,6 +368,27 @@ l_obj_s:
 
 l_obj_e:
     cb(jr_type_object_end, NULL, user_data);
+    JR_POP_GO();
+    JR_DISPATCH_NEXT();
+
+l_kvp:
+    data.cstr = cstr;
+    JR_PUSH_GO(go_obj_val);
+    JR_PUSH_GO(go_col);
+    JR_PUSH_GO(go_key);
+    JR_DISPATCH_NEXT();
+
+l_key:
+    data.len = (int32_t)(c - data.cstr);
+    cb(jr_type_key, &data, user_data);
+    JR_POP_GO();
+    JR_DISPATCH_NEXT();
+
+l_val:
+    JR_POP_GO();
+    goto *go_val[*c];
+
+l_col:
     JR_POP_GO();
     JR_DISPATCH_NEXT();
 

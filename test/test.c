@@ -18,22 +18,25 @@ void handler(jr_type type, const jr_str* data, void* user_data) {
             printf("}\n");
             return;
         case jr_type_true:
-            printf("true\n");
+            printf("<true>\n");
             return;
         case jr_type_false:
-            printf("false\n");
+            printf("<false>\n");
             return;
         case jr_type_null:
-            printf("null\n");
+            printf("<null>\n");
             return;
         case jr_type_number:
-            printf(" NUM: %.*s\n", data->len, data->cstr);
+            printf("(%.*s)\n", data->len, data->cstr);
             return;
         case jr_type_string:
-            printf(" STR: %.*s\n", data->len, data->cstr);
+            printf("\"%.*s\"\n", data->len, data->cstr);
+            return;
+        case jr_type_key:
+            printf("'%.*s'\n", data->len, data->cstr);
             return;
         case jr_type_error:
-            printf(" ERROR: char '%.*s'\n", data->len, data->cstr);
+            printf("ERROR: char '%.*s'\n", data->len, data->cstr);
             exit(1);
             return;
     }
