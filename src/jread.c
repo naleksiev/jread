@@ -71,7 +71,9 @@ void jr_read(jr_callback cb, const char* cstr, void* user_data) {
     };
 
     static void* go_num[] = {
-        [0 ... 47]    = &&l_num_e,
+        [0 ... 45]    = &&l_num_e,
+        ['.']         = &&l_next,
+        [47 ... 47]   = &&l_num_e,
         ['0' ... '9'] = &&l_next,
         [58 ... 255]  = &&l_num_e,
     };
@@ -183,7 +185,7 @@ void jr_read(jr_callback cb, const char* cstr, void* user_data) {
         [33 ... 33]   = &&l_err,
         ['"']         = &&l_str_s,
         [35 ... 43]   = &&l_err,
-        [',']         = &&l_arr_next,
+        [',']         = &&l_next,
         ['-']         = &&l_num_s,
         [46 ... 47]   = &&l_err,
         ['0' ... '9'] = &&l_num_s,
@@ -212,7 +214,9 @@ void jr_read(jr_callback cb, const char* cstr, void* user_data) {
         [' ']         = &&l_next,
         [33 ... 33]   = &&l_err,
         ['"']         = &&l_kvp,
-        [35 ... 124]  = &&l_err,
+        [35 ... 43]   = &&l_err,
+        [',']         = &&l_next,
+        [45 ... 124]  = &&l_err,
         ['}']         = &&l_obj_e,
         [126 ... 255] = &&l_err,
     };
@@ -356,9 +360,6 @@ l_arr_s:
 l_arr_e:
     cb(jr_type_array_end, NULL, user_data);
     JR_POP_GO();
-    JR_DISPATCH_NEXT();
-
-l_arr_next:
     JR_DISPATCH_NEXT();
 
 l_obj_s:
