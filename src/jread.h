@@ -40,4 +40,3 @@ void jr_read(jr_callback cb, const char* doc, void* user_data);
 #endif
 
 #endif //#ifndef __JREAD_H__
-

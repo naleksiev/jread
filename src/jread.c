@@ -8,11 +8,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define JR_DISPATCH_NEXT()  goto *go[*(c = cstr++)]
-#define JR_DISPATCH_THIS()  goto *go[*c];
-#define JR_PUSH(x)          go_stack[go_stack_idx++] = go
-#define JR_PUSH_GO(x)       go_stack[go_stack_idx++] = go; go = x
-#define JR_POP_GO()         go = go_stack[--go_stack_idx]
+#define JR_DISPATCH_NEXT()      goto *go[(uint8_t)*(c = cstr++)]
+#define JR_DISPATCH_THIS()      goto *go[(uint8_t)*c];
+#define JR_DISPATCH_NEXT_GO(x)  goto *x[(uint8_t)*(c = cstr++)]
+#define JR_DISPATCH_THIS_GO(x)  goto *x[(uint8_t)*c];
+#define JR_DISPATCH_NEXT_MASK() goto *go_utf8[(uint8_t)*(c = cstr++) & utf8_mask]
+#define JR_PUSH(x)              go_stack[go_stack_idx++] = go
+#define JR_PUSH_GO(x)           go_stack[go_stack_idx++] = go; go = x
+#define JR_POP_GO()             go = go_stack[--go_stack_idx]
 
 void jr_read(jr_callback cb, const char* cstr, void* user_data) {
     static void* go_doc[] = {
@@ -107,11 +110,6 @@ void jr_read(jr_callback cb, const char* cstr, void* user_data) {
         [1 ... 127]   = &&l_err,
         [128 ... 191] = &&l_utf8,
         [192 ... 255] = &&l_err,
-    };
-
-    static void* go_utf8_valid[] = {
-        ['\0']        = &&l_next,
-        [1  ... 255]  = &&l_err,
     };
 
     static void* go_null_n[] = {
@@ -287,32 +285,32 @@ l_str_e:
 
 l_utf8:
     utf8_mask >>= 8;
-    goto *go_utf8[*(c = cstr++) & utf8_mask];
+    JR_DISPATCH_NEXT_MASK();
 
 l_utf8_2:
     utf8_mask = 0x000000FF;
-    goto *go_utf8[*(c = cstr++)];
+    JR_DISPATCH_NEXT_GO(go_utf8);
 
 l_utf8_3:
     utf8_mask = 0x0000FFFF;
-    goto *go_utf8[*(c = cstr++)];
+    JR_DISPATCH_NEXT_GO(go_utf8);
 
 l_utf8_4:
     utf8_mask = 0x00FFFFFF;
-    goto *go_utf8[*(c = cstr++)];
+    JR_DISPATCH_NEXT_GO(go_utf8);
 
 l_utf8_valid:
-    goto *go_utf8_valid[utf8_mask];
+    JR_DISPATCH_THIS();
 
 l_null_n:
     JR_PUSH();
-    goto *go_null_n[*(c = cstr++)];
-    
+    JR_DISPATCH_NEXT_GO(go_null_n);
+
 l_null_u:
-    goto *go_null_u[*(c = cstr++)];
-    
+    JR_DISPATCH_NEXT_GO(go_null_u);
+
 l_null_l:
-    goto *go_null_l[*(c = cstr++)];
+    JR_DISPATCH_NEXT_GO(go_null_l);
 
 l_null_ll:
     cb(jr_type_null, NULL, user_data);
@@ -321,13 +319,13 @@ l_null_ll:
 
 l_true_t:
     JR_PUSH();
-    goto *go_true_t[*(c = cstr++)];
-    
+    JR_DISPATCH_NEXT_GO(go_true_t);
+
 l_true_r:
-    goto *go_true_r[*(c = cstr++)];
-    
+    JR_DISPATCH_NEXT_GO(go_true_r);
+
 l_true_u:
-    goto *go_true_u[*(c = cstr++)];
+    JR_DISPATCH_NEXT_GO(go_true_u);
 
 l_true_e:
     cb(jr_type_true, NULL, user_data);
@@ -336,17 +334,17 @@ l_true_e:
 
 l_false_f:
     JR_PUSH();
-    goto *go_false_f[*(c = cstr++)];
+    JR_DISPATCH_NEXT_GO(go_false_f);
 
 l_false_a:
-    goto *go_false_a[*(c = cstr++)];
-    
+    JR_DISPATCH_NEXT_GO(go_false_a);
+
 l_false_l:
-    goto *go_false_l[*(c = cstr++)];
-    
+    JR_DISPATCH_NEXT_GO(go_false_l);
+
 l_false_s:
-    goto *go_false_s[*(c = cstr++)];
-    
+    JR_DISPATCH_NEXT_GO(go_false_s);
+
 l_false_e:
     cb(jr_type_false, NULL, user_data);
     JR_POP_GO();
@@ -387,7 +385,7 @@ l_key:
 
 l_val:
     JR_POP_GO();
-    goto *go_val[*c];
+    JR_DISPATCH_THIS_GO(go_val);
 
 l_col:
     JR_POP_GO();
@@ -396,4 +394,3 @@ l_col:
 l_done:
     return;
 }
-
