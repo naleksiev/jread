@@ -8,11 +8,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define JR_DISPATCH_NEXT()      goto *go[(uint8_t)*(c = cstr++)]
-#define JR_DISPATCH_THIS()      goto *go[(uint8_t)*c];
-#define JR_DISPATCH_NEXT_GO(x)  goto *x[(uint8_t)*(c = cstr++)]
-#define JR_DISPATCH_THIS_GO(x)  goto *x[(uint8_t)*c];
-#define JR_DISPATCH_NEXT_MASK() goto *go_utf8[(uint8_t)*(c = cstr++) & utf8_mask]
+#define JR_DISPATCH_NEXT()      goto *go[(uint8_t)*cstr++]
+#define JR_DISPATCH_THIS()      goto *go[(uint8_t)cstr[-1]];
+#define JR_DISPATCH_NEXT_GO(x)  goto *x[(uint8_t)*cstr++]
+#define JR_DISPATCH_THIS_GO(x)  goto *x[(uint8_t)cstr[-1]];
+#define JR_DISPATCH_NEXT_MASK() goto *go_utf8[(uint8_t)*cstr++ & utf8_mask]
 #define JR_PUSH(x)              go_stack[go_stack_idx++] = go
 #define JR_PUSH_GO(x)           go_stack[go_stack_idx++] = go; go = x
 #define JR_POP_GO()             go = go_stack[--go_stack_idx]
@@ -245,8 +245,6 @@ void jr_read(jr_callback cb, const char* cstr, void* user_data) {
 
     jr_str data = { .cstr = 0, .len = 0 };
 
-    const char* c = NULL;
-
     void**  go = go_doc;
     void**  go_stack[255];
     int32_t go_stack_idx = 0;
@@ -256,18 +254,18 @@ l_next:
     JR_DISPATCH_NEXT();
 
 l_err:
-    data.cstr = c;
+    data.cstr = cstr - 1;
     data.len = 1;
     cb(jr_type_error, &data, user_data);
     return;
 
 l_num_s:
-    data.cstr = c;
+    data.cstr = cstr - 1;
     JR_PUSH_GO(go_num);
     JR_DISPATCH_NEXT();
 
 l_num_e:
-    data.len = (int32_t)(c - data.cstr);
+    data.len = (int32_t)(cstr - 1 - data.cstr);
     cb(jr_type_number, &data, user_data);
     JR_POP_GO();
     JR_DISPATCH_THIS();
@@ -278,7 +276,7 @@ l_str_s:
     JR_DISPATCH_NEXT();
 
 l_str_e:
-    data.len = (int32_t)(c - data.cstr);
+    data.len = (int32_t)(cstr - 1 - data.cstr);
     cb(jr_type_string, &data, user_data);
     JR_POP_GO();
     JR_DISPATCH_NEXT();
@@ -378,7 +376,7 @@ l_kvp:
     JR_DISPATCH_NEXT();
 
 l_key:
-    data.len = (int32_t)(c - data.cstr);
+    data.len = (int32_t)(cstr - 1 - data.cstr);
     cb(jr_type_key, &data, user_data);
     JR_POP_GO();
     JR_DISPATCH_NEXT();
