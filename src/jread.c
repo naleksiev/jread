@@ -5,9 +5,6 @@
 
 #include "jread.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #define JR_DISPATCH_NEXT()      goto *go[(uint8_t)*cstr++]
 #define JR_DISPATCH_THIS()      goto *go[(uint8_t)cstr[-1]];
 #define JR_DISPATCH_NEXT_GO(x)  goto *x[(uint8_t)*cstr++]
@@ -326,7 +323,7 @@ l_null_l:
     JR_DISPATCH_NEXT_GO(go_null_l);
 
 l_null_ll:
-    cb(jr_type_null, NULL, user_data);
+    cb(jr_type_null, 0, user_data);
     JR_POP_GO();
     JR_DISPATCH_NEXT();
 
@@ -341,7 +338,7 @@ l_true_u:
     JR_DISPATCH_NEXT_GO(go_true_u);
 
 l_true_e:
-    cb(jr_type_true, NULL, user_data);
+    cb(jr_type_true, 0, user_data);
     JR_POP_GO();
     JR_DISPATCH_NEXT();
 
@@ -359,27 +356,27 @@ l_false_s:
     JR_DISPATCH_NEXT_GO(go_false_s);
 
 l_false_e:
-    cb(jr_type_false, NULL, user_data);
+    cb(jr_type_false, 0, user_data);
     JR_POP_GO();
     JR_DISPATCH_NEXT();
 
 l_arr_s:
-    cb(jr_type_array_start, NULL, user_data);
+    cb(jr_type_array_start, 0, user_data);
     JR_PUSH_GO(go_arr);
     JR_DISPATCH_NEXT();
 
 l_arr_e:
-    cb(jr_type_array_end, NULL, user_data);
+    cb(jr_type_array_end, 0, user_data);
     JR_POP_GO();
     JR_DISPATCH_NEXT();
 
 l_obj_s:
-    cb(jr_type_object_start, NULL, user_data);
+    cb(jr_type_object_start, 0, user_data);
     JR_PUSH_GO(go_obj);
     JR_DISPATCH_NEXT();
 
 l_obj_e:
-    cb(jr_type_object_end, NULL, user_data);
+    cb(jr_type_object_end, 0, user_data);
     JR_POP_GO();
     JR_DISPATCH_NEXT();
 
