@@ -85,7 +85,9 @@ void jr_read(jr_callback cb, const char* cstr, void* user_data) {
         [0 ... 31]    = &&l_err,
         [32 ... 33]   = &&l_next,
         ['"']         = &&l_str_e,
-        [35 ... 126]  = &&l_next,
+        [35 ... 91]   = &&l_next,
+        ['\\']        = &&l_esc,
+        [93 ... 126]  = &&l_next,
         [127 ... 191] = &&l_err,
         [192 ... 223] = &&l_utf8_2,
         [224 ... 239] = &&l_utf8_3,
@@ -93,16 +95,24 @@ void jr_read(jr_callback cb, const char* cstr, void* user_data) {
         [248 ... 255] = &&l_err,
     };
 
-    static void* go_key[] = {
-        [0 ... 31]    = &&l_err,
-        [32 ... 33]   = &&l_next,
-        ['"']         = &&l_key,
-        [35 ... 126]  = &&l_next,
-        [127 ... 191] = &&l_err,
-        [192 ... 223] = &&l_utf8_2,
-        [224 ... 239] = &&l_utf8_3,
-        [240 ... 247] = &&l_utf8_4,
-        [248 ... 255] = &&l_err,
+    static void* go_esc[] = {
+        [0 ... 33]    = &&l_err,
+        ['"']         = &&l_next,
+        [35 ... 46]   = &&l_err,
+        ['/']         = &&l_next,
+        [48 ... 91]   = &&l_err,
+        ['\\']        = &&l_next,
+        [93 ... 97]   = &&l_err,
+        ['b']         = &&l_next,
+        [99 ... 101]  = &&l_err,
+        ['f']         = &&l_next,
+        [103 ... 109] = &&l_err,
+        ['n']         = &&l_next,
+        [111 ... 113] = &&l_err,
+        ['r']         = &&l_next,
+        [115 ... 115] = &&l_err,
+        ['t']         = &&l_next,
+        [117 ... 255] = &&l_err,
     };
 
     static void* go_utf8[] = {
@@ -249,6 +259,7 @@ void jr_read(jr_callback cb, const char* cstr, void* user_data) {
     void**  go_stack[255];
     int32_t go_stack_idx = 0;
     int32_t utf8_mask = 0;
+    jr_type str_type = jr_type_string;
 
 l_next:
     JR_DISPATCH_NEXT();
@@ -273,13 +284,17 @@ l_num_e:
 l_str_s:
     data.cstr = cstr;
     JR_PUSH_GO(go_str);
+    str_type = jr_type_string;
     JR_DISPATCH_NEXT();
 
 l_str_e:
     data.len = (int32_t)(cstr - 1 - data.cstr);
-    cb(jr_type_string, &data, user_data);
+    cb(str_type, &data, user_data);
     JR_POP_GO();
     JR_DISPATCH_NEXT();
+
+l_esc:
+    JR_DISPATCH_NEXT_GO(go_esc);
 
 l_utf8:
     utf8_mask >>= 8;
@@ -372,13 +387,8 @@ l_kvp:
     data.cstr = cstr;
     JR_PUSH_GO(go_obj_val);
     JR_PUSH_GO(go_col);
-    JR_PUSH_GO(go_key);
-    JR_DISPATCH_NEXT();
-
-l_key:
-    data.len = (int32_t)(cstr - 1 - data.cstr);
-    cb(jr_type_key, &data, user_data);
-    JR_POP_GO();
+    JR_PUSH_GO(go_str);
+    str_type = jr_type_key;
     JR_DISPATCH_NEXT();
 
 l_val:
