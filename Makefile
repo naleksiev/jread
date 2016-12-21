@@ -8,5 +8,5 @@ clean:
 	rm -Rf .build
 
 run: .build/test.o
-	@if .build/test.o ; then echo "PASSED"; else echo "FAILED"; exit 1; fi;
+	@if .build/test.o test/test.json ; then echo "PASSED"; else echo "FAILED"; exit 1; fi;
 

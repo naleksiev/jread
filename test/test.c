@@ -5,45 +5,18 @@
 
 void handler(jr_type type, const jr_str* data, void* user_data) {
     switch (type) {
-        case jr_type_array_start:
-            printf("[\n");
-            return;
-        case jr_type_array_end:
-            printf("]\n");
-            return;
-        case jr_type_object_start:
-            printf("{\n");
-            return;
-        case jr_type_object_end:
-            printf("}\n");
-            return;
-        case jr_type_true:
-            printf("<true>\n");
-            return;
-        case jr_type_false:
-            printf("<false>\n");
-            return;
-        case jr_type_null:
-            printf("<null>\n");
-            return;
-        case jr_type_number:
-            printf("(%.*s)\n", data->len, data->cstr);
-            return;
-        case jr_type_string:
-            printf("\"%.*s\"\n", data->len, data->cstr);
-            return;
-        case jr_type_key:
-            printf("'%.*s'\n", data->len, data->cstr);
-            return;
         case jr_type_error:
-            printf("ERROR: char '%.*s'\n", data->len, data->cstr);
+            printf("ERROR: '%.*s'\n", data->len, data->cstr);
             exit(1);
+        default:
             return;
     }
 }
 
-int main() {
-    FILE* fp = fopen("test/test.json", "rb");
+int main(int argc, char *argv[]) {
+    if (argc != 2)
+        return 1;
+    FILE* fp = fopen(argv[1], "rb");
     if (!fp)
         return 1;
     fseek(fp, 0, SEEK_END);
@@ -59,5 +32,5 @@ int main() {
     jr_read(&handler, buffer, 0);
     printf("%.4f\n", (double)(clock() - start) / CLOCKS_PER_SEC);
     free(buffer);
+    return 0;
 }
-
