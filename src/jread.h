@@ -8,6 +8,10 @@
 
 #include <stdint.h>
 
+#ifndef JREAD_CONFIG_MAX_DEPTH
+#   define JREAD_CONFIG_MAX_DEPTH 64
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

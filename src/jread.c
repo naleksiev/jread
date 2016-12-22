@@ -253,7 +253,7 @@ void jr_read(jr_callback cb, const char* cstr, void* user_data) {
     jr_str data = { .cstr = 0, .len = 0 };
 
     void**  go = go_doc;
-    void**  go_stack[255];
+    void**  go_stack[JREAD_CONFIG_MAX_DEPTH];
     int32_t go_stack_idx = 0;
     int32_t utf8_mask = 0;
     jr_type str_type = jr_type_string;
