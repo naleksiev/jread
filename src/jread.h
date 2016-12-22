@@ -3,8 +3,8 @@
  * License: https://github.com/naleksiev/jread/blob/master/LICENSE
  */
 
-#ifndef __JREAD_H__
-#define __JREAD_H__
+#ifndef JREAD_H
+#define JREAD_H
 
 #include <stdint.h>
 
@@ -43,4 +43,4 @@ void jr_read(jr_callback cb, const char* doc, void* user_data);
 }
 #endif
 
-#endif //#ifndef __JREAD_H__
+#endif //#ifndef JREAD_H
