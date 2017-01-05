@@ -1,3 +1,8 @@
+/*
+ * Copyright 2016-2017 Nikolay Aleksiev. All rights reserved.
+ * License: https://github.com/naleksiev/jread/blob/master/LICENSE
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
