@@ -6,4 +6,3 @@ Lightning fast JSON parser. Inspired by [js0n](https://github.com/quartzjer/js0n
 * Computed goto tables for efficiant dispatching
 * Convenient user_data pointer allows single handler to be used for multiple parser instances
 * UTF-8 support
-* No conditional branching
