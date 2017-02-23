@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-typedef enum jr_type {
+typedef enum jr_type_t {
     jr_type_error,
     jr_type_null,
     jr_type_true,
@@ -28,14 +28,14 @@ typedef enum jr_type {
     jr_type_object_start,
     jr_type_object_end,
     jr_type_key,
-} jr_type;
+} jr_type_t;
 
-typedef struct jr_str {
+typedef struct jr_str_t {
     const char* cstr;
     int32_t     len;
-} jr_str;
+} jr_str_t;
 
-typedef void (*jr_callback)(jr_type type, const jr_str* data, void* user_data);
+typedef void (*jr_callback)(jr_type_t type, const jr_str_t* data, void* user_data);
 
 void jr_read(jr_callback cb, const char* doc, void* user_data);
 

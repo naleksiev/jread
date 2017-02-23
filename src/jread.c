@@ -250,13 +250,13 @@ void jr_read(jr_callback cb, const char* cstr, void* user_data) {
         [33 ... 255]  = &&l_val,
     };
 
-    jr_str data = { .cstr = 0, .len = 0 };
+    jr_str_t  data = { .cstr = 0, .len = 0 };
 
-    void**  go = go_doc;
-    void**  go_stack[JREAD_CONFIG_MAX_DEPTH];
-    int32_t go_stack_idx = 0;
-    int32_t utf8_mask = 0;
-    jr_type str_type = jr_type_string;
+    void**    go = go_doc;
+    void**    go_stack[JREAD_CONFIG_MAX_DEPTH];
+    int32_t   go_stack_idx = 0;
+    int32_t   utf8_mask = 0;
+    jr_type_t str_type = jr_type_string;
 
 l_next:
     JR_DISPATCH_NEXT();

@@ -8,7 +8,7 @@
 #include <time.h>
 #include "../src/jread.h"
 
-void handler(jr_type type, const jr_str* data, void* user_data) {
+void handler(jr_type_t type, const jr_str_t* data, void* user_data) {
     switch (type) {
         case jr_type_error:
             printf("ERROR: '%.*s'\n", data->len, data->cstr);
