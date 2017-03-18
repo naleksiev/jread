@@ -1,8 +1,20 @@
 language: c
-script: make run
+
+before_script:
+ - if [ $TRAVIS_OS_NAME = "linux" ]; then sudo apt-get install libc6-dev-i386; fi
+
+script:
+ - make run
+
 compiler:
  - clang
  - gcc
+
 os:
  - linux
  - osx
+
+env:
+ - CFLAGS=-m32
+ - CFLAGS=-m64
+
