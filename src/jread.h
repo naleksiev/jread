@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-typedef enum jr_type_t {
+typedef enum jr_type {
     jr_type_error,
     jr_type_null,
     jr_type_true,
@@ -30,7 +30,7 @@ typedef enum jr_type_t {
     jr_type_key,
 } jr_type_t;
 
-typedef struct jr_str_t {
+typedef struct jr_str {
     const char* cstr;
     int32_t     len;
 } jr_str_t;
