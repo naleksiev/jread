@@ -1,6 +1,6 @@
 .build/test.o: test/test.c src/jread.h src/jread.c
 	mkdir -p .build
-	$(CC) -O3 test/test.c src/jread.c -o .build/test.o
+	$(CC) $(CFLAGS) -O3 test/test.c src/jread.c -o .build/test.o
 
 all: .build/test.o
 
