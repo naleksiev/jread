@@ -1,6 +1,5 @@
-[![Build Status](https://travis-ci.org/naleksiev/jread.svg?branch=master)](https://travis-ci.org/naleksiev/jread)
-[![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/naleksiev/jread/blob/master/LICENSE)
-# jread
+# jread ![Build](https://github.com/naleksiev/jread/workflows/Build/badge.svg?branch=master) [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/naleksiev/jread/blob/master/LICENSE)
+
 Lightning fast JSON parser. Inspired by [js0n](https://github.com/quartzjer/js0n).
 * Single pass, validating push parser
 * Computed goto tables for efficiant dispatching
